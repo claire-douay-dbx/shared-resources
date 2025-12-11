@@ -14,7 +14,7 @@ command:
 
 env:
   - name: "DATABRICKS_WAREHOUSE_ID"
-    value: "148ccb90800933a1"
+    value: "your-warehouse-id"
 
   - name: "ALLOWED_CATALOGS"
     value: "example_cat_1,example_cat_2"
