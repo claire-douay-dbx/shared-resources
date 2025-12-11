@@ -1,0 +1,11 @@
+# Approver Configuration
+# 
+# Approvers can view pending changes, add comments, and approve/reject suggestions.
+# Users not in this list can only use "Browse & Suggest" mode.
+#
+# Optional: Add a separate "reviewers" section if you need users who can only 
+# view pending changes without approval rights (read-only review access).
+
+approvers:
+  - claire.douay@databricks.com
+  - marius.panga@databricks.com

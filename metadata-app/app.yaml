@@ -1,0 +1,33 @@
+# command: [
+#   "streamlit",
+#   "run",
+#   "app.py",
+#   "--server.port=8080",
+#   "--server.enableCORS=false",
+#   "--server.enableXsrfProtection=false"
+# ]
+
+command:
+  - streamlit
+  - run
+  - app.py
+
+env:
+  - name: "DATABRICKS_WAREHOUSE_ID"
+    value: "148ccb90800933a1"
+
+  - name: "ALLOWED_CATALOGS"
+    value: "asda_metadata_rampup,carwow_sales_cd,cd_asda_sc_cat,cdouay_view_testing,cdouay_wid_demo,gender_parity_data"
+
+  - name: "ALLOWED_SCHEMAS"
+    value: ""
+
+# Enable on-behalf-of-user authentication to get user tokens
+# This allows the app to access X-Forwarded-Access-Token header
+# and perform operations as the logged-in user
+resources:
+  - name: oauth
+    description: "OAuth configuration for on-behalf-of-user authentication, to check if user logging in is approved reviewer"
+    oauth:
+      client_scopes:
+        - all-apis
