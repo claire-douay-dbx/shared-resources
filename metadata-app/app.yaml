@@ -17,7 +17,7 @@ env:
     value: "148ccb90800933a1"
 
   - name: "ALLOWED_CATALOGS"
-    value: "asda_metadata_rampup,carwow_sales_cd,cd_asda_sc_cat,cdouay_view_testing,cdouay_wid_demo,gender_parity_data"
+    value: "example_cat_1,example_cat_2"
 
   - name: "ALLOWED_SCHEMAS"
     value: ""
