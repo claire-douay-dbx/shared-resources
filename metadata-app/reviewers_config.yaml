@@ -7,5 +7,4 @@
 # view pending changes without approval rights (read-only review access).
 
 approvers:
-  - claire.douay@databricks.com
-  - marius.panga@databricks.com
+  - reviewer.name@address.com
