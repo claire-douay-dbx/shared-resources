@@ -11,7 +11,8 @@
 | `files.pythonhosted.org` | 443 | Python package files | ✅ Required |
 
 *The build script (`build_static.sh`) runs `yarn install` or `npm ci` which downloads ~70+ frontend packages.*
-*Required for installing packages from `requirements.txt` (~30 Python packages).*
+
+*PyPi is required for installing packages from `requirements.txt` (~30 Python packages).*
 
 **Note:** The build also downloads **platform-specific esbuild binaries** (seen in yarn.lock) - these come from the same `registry.yarnpkg.com` endpoint.
 
