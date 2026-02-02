@@ -1,8 +1,3 @@
-# External endpoints for whitelisting
-
-Here's the **list of endpoints to consider adding to the whitelist** for the Ontos app deployment:
-
----
 
 # 🔐 Complete External Endpoints Whitelist for Ontos
 
