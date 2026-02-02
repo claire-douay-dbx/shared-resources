@@ -1,5 +1,5 @@
 # External endpoints for whitelisting
-Here's the **updated and complete whitelist** including **build-time dependencies**:
+Here's the complete whitelist including **build-time dependencies**:
 
 ---
 
