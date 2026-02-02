@@ -3,7 +3,7 @@ Here's the complete whitelist including **build-time dependencies**:
 
 ---
 
-# Ontos External Endpoints Whitelist (Complete)
+# Ontos External Endpoints Whitelist
 
 ## 🔧 BUILD-TIME ENDPOINTS (Required During Deployment)
 
