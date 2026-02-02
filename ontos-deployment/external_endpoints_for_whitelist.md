@@ -46,7 +46,7 @@ These endpoints are needed when Databricks Apps builds your application during d
 
 **Production example:**
 ```
-https://adb-984752964297111.11.azuredatabricks.net
+https://adb-xxx.azuredatabricks.net
 ```
 
 ### **4. Database (Internal)**
@@ -75,7 +75,7 @@ https://files.pythonhosted.org
 
 ```plaintext
 # Your Databricks Workspace (replace with actual)
-https://adb-984752964297111.11.azuredatabricks.net
+https://adb-xxx.azuredatabricks.net
 ```
 
 ### **Optional (if features enabled):**
@@ -124,7 +124,7 @@ files.pythonhosted.org:443
 The error `error during npm build: exit status 1` strongly suggests the Databricks Apps build environment can't reach the npm registry. You may need to work with your network team to allow outbound HTTPS (port 443) to these registries during the deployment process.
 
 ```plaintext
-https://adb-984752964297111.11.azuredatabricks.net
+https://adb-xxx.azuredatabricks.net
 ```
 
 ```plaintext
@@ -139,7 +139,7 @@ https://files.pythonhosted.org
 
 ```plaintext
 # Your Databricks Workspace (replace with actual)
-https://adb-984752964297111.11.azuredatabricks.net
+https://adb-xxx.azuredatabricks.net
 ```
 
 ```plaintext
