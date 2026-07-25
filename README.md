@@ -7,7 +7,7 @@ top-level folder is an independent project with its own docs.
 
 | Project | What it is |
 |---|---|
-| [`arch-day`](./arch-day) | Scripts + sample CSVs to set up a retail data model (articles, transactions, date dimensions) in Unity Catalog. See `SETUP_GUIDE.md`. |
+| [`arch-day`](./arch-day) | Scripts + sample CSVs to set up a retail data model for a Genie Agent workshop. See `SETUP_GUIDE.md`. |
 | [`ash-mcp`](./ash-mcp) | Data-standards and sensitive-data-policy references plus an SDP SQL template. |
 | [`bi-monitoring-suite`](./bi-monitoring-suite) | Deployable Databricks Asset Bundle that monitors BI usage across Genie Agents and AIBI dashboards — adoption, cost, quality, freshness. Base-metrics notebook + twice-daily serverless job + metric view + Lakeview dashboard. Portable across AWS and Azure. |
 | [`genie-code-skills`](./genie-code-skills) | Two Genie Code skills for monitoring a Genie agent: `genie-feedback-semantic-gaps` (feedback → drafted semantic fixes) and `genie-to-aibi-metric-demand` (queries → AI/BI build plan). |
