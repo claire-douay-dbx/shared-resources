@@ -1,0 +1,120 @@
+# Databricks Unity Catalog Metric View
+# Object: bi_monitoring_suite.monitoring_assets.bi_usage_metrics
+# Built over the UNDUPLICATED fact table bi_usage_fact (NOT the tag-exploded _tags table — that
+# fanned cost out by number-of-tags-per-row, inflating totals ~2.5x). Governed tags are exposed as
+# scalar map-access dimensions (governed_tags['key']) so filtering by tag needs no row explosion.
+# Averages/ratios are defined here from SUM/COUNT pairs so they aggregate correctly at ANY
+# roll-up level (a plain AVG of a pre-averaged column would be wrong).
+#
+# This is the SINGLE GOVERNED SOURCE for the AIBI dashboard — all dashboard datasets query this
+# view via MEASURE(...); no metric logic lives in the dashboard SQL.
+#
+# Cloud portability: identical on AWS and Azure — a metric view is pure UC metadata over a UC
+# table; no cloud-specific syntax exists.
+#
+# Benchmarked on deploy: MEASURE() totals match raw bi_usage_fact exactly (unit test each
+# measure against a plain GROUP BY on the fact after first build). Created via:
+#   CREATE OR REPLACE VIEW bi_monitoring_suite.monitoring_assets.bi_usage_metrics
+#   WITH METRICS LANGUAGE YAML AS $$ <the spec below> $$;
+# Query pattern (MEASURE required on measures):
+#   SELECT `Product`, MEASURE(`Unique Users`), MEASURE(`Total Cost (USD)`)
+#   FROM bi_monitoring_suite.monitoring_assets.bi_usage_metrics GROUP BY `Product`;
+version: "0.1"
+
+source: bi_monitoring_suite.monitoring_assets.bi_usage_fact
+
+# ---------------------------------------------------------------------------
+# DIMENSIONS — the levels every metric can be sliced / filtered by.
+# ---------------------------------------------------------------------------
+dimensions:
+  # --- time (day → week → month → quarter → year, all derived from usage_date) ---
+  - name: Date
+    expr: usage_date
+  - name: Day
+    expr: date_trunc('DAY', usage_date)
+  - name: Week
+    expr: date_trunc('WEEK', usage_date)
+  - name: Month
+    expr: date_trunc('MONTH', usage_date)
+  - name: Quarter
+    expr: date_trunc('QUARTER', usage_date)
+  - name: Year
+    expr: date_trunc('YEAR', usage_date)
+
+  # --- top-level grouping levels ---
+  - name: Account
+    expr: account_id
+  - name: Workspace
+    expr: workspace_id
+  - name: Workspace Name               # human-readable name from system.access.workspaces_latest
+    expr: workspace_name
+  - name: Product                      # GENIE_AGENTS | AIBI
+    expr: product
+  - name: Surface                      # GENIE_AGENTS | SQL_WAREHOUSE (Genie Code/One appear if present)
+    expr: surface
+  - name: Owner                        # raw identity (email / SP id) — used for filtering & joins
+    expr: user_hash
+  - name: Owner Name                   # human-readable "First Last" (or SP/local-part) for labels
+    expr: user_display
+  - name: Asset                        # individual genie space / dashboard / warehouse id
+    expr: asset_id
+  - name: Asset Name                   # warehouse name where resolvable, else id (Genie/dashboard names not in system tables)
+    expr: asset_name
+  - name: Asset Type
+    expr: asset_type
+  # --- governed tags via scalar map access (no row explosion) ---
+  - name: Tag Environment
+    expr: governed_tags['Environment']
+  - name: Tag Service
+    expr: governed_tags['Service']
+  - name: Tag Type
+    expr: governed_tags['Type']
+  - name: Tag Purpose
+    expr: governed_tags['Purpose']
+  - name: Tag Owner
+    expr: coalesce(governed_tags['Owner'], governed_tags['owner'])
+
+# ---------------------------------------------------------------------------
+# MEASURES — additive base measures + correctly-derived averages/ratios.
+# ---------------------------------------------------------------------------
+measures:
+  # adoption
+  - name: Unique Users
+    expr: COUNT(DISTINCT user_hash)
+  # Interactions: Genie = audit messages; AIBI = dashboard queries passed back (query_count). Per spec.
+  - name: Total Interactions
+    expr: SUM(CASE WHEN product = 'AIBI' THEN query_count ELSE interactions END)
+  - name: Total Queries
+    expr: SUM(query_count)
+
+  # cost
+  - name: Total Cost (USD)
+    expr: SUM(cost_usd)
+  - name: Total DBUs
+    expr: SUM(dbus)
+  - name: Cost per User (USD)
+    expr: SUM(cost_usd) / NULLIF(COUNT(DISTINCT user_hash), 0)
+  - name: Cost per Query (USD)
+    expr: SUM(cost_usd) / NULLIF(SUM(query_count), 0)
+  - name: Avg Cost per User per Day (USD)     # total cost / distinct users / distinct active days
+    expr: SUM(cost_usd) / NULLIF(COUNT(DISTINCT user_hash), 0) / NULLIF(COUNT(DISTINCT usage_date), 0)
+  - name: Avg Cost per Asset (USD)            # total cost / distinct assets (scope by Product for agent/dashboard)
+    expr: SUM(cost_usd) / NULLIF(COUNT(DISTINCT asset_id), 0)
+
+  # quality — ratings (Genie Agents). % = thumbs of that type / TOTAL ratings x 100.
+  # Cast to DOUBLE so Lakeview counters render (decimal(38,14) shows blank in a counter widget).
+  - name: Thumbs Up
+    expr: SUM(thumbs_up)
+  - name: Thumbs Down
+    expr: SUM(thumbs_down)
+  - name: Positive Rating %
+    expr: CAST(ROUND(100.0 * SUM(thumbs_up) / NULLIF(SUM(thumbs_up) + SUM(thumbs_down), 0), 1) AS DOUBLE)
+  - name: Negative Rating %
+    expr: CAST(ROUND(100.0 * SUM(thumbs_down) / NULLIF(SUM(thumbs_up) + SUM(thumbs_down), 0), 1) AS DOUBLE)
+
+  # performance — query completion time (substitutes dashboard load time).
+  # Denominator is duration_query_count (queries with a VALID positive duration), NOT query_count:
+  # system.query.history emits ~10k FINISHED rows with negative total_duration_ms; the notebook
+  # sums only positive durations and counts them separately so the avg can't go negative.
+  - name: Avg Query Completion (ms)
+    expr: CAST(ROUND(SUM(total_duration_ms) / NULLIF(SUM(duration_query_count), 0), 0) AS DOUBLE)

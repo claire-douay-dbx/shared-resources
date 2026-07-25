@@ -1,0 +1,53 @@
+# BI Monitoring Suite — Databricks Asset Bundle
+# Deploys: base-metrics notebook + twice-daily serverless job (00:00 & 12:00).
+# Portable across AWS and Azure with NO syntax changes — the only cloud-specific value is the
+# `host` in each target below. Everything else (serverless job, notebook, schedules) is identical.
+bundle:
+  name: bi-monitoring-suite
+
+variables:
+  target_catalog:
+    default: bi_monitoring_suite
+  target_schema:
+    default: monitoring_assets
+  warehouse_id:
+    description: SQL warehouse the dashboard/metric view query against
+    default: "<your-warehouse-id>"   # SQL warehouse id in your workspace; override per env
+
+resources:
+  jobs:
+    bi_monitoring_refresh:
+      name: "[BI Monitoring] Genie + AIBI metrics refresh"
+      # Twice daily: one quartz cron firing at both 00:00 and 12:00 (the `0,12` in the hours field).
+      schedule:
+        quartz_cron_expression: "0 0 0,12 * * ?"   # sec min hour → 00:00 and 12:00 every day
+        timezone_id: "UTC"
+        pause_status: "UNPAUSED"
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: base_metrics
+          notebook_task:
+            notebook_path: ./src/01_base_metrics.py    # bundle-root-relative
+            base_parameters:
+              target_catalog: ${var.target_catalog}
+              target_schema: ${var.target_schema}
+              lookback_days: "395"
+              anonymize_pii: "false"   # false = show real user names; "true" = salted-hash anonymisation
+          # Serverless: no cluster block → runs on serverless compute (identical on AWS/Azure).
+      queue:
+        enabled: true
+
+targets:
+  azure:
+    default: true
+    workspace:
+      host: https://<your-azure-workspace>.azuredatabricks.net
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      user_name: ${workspace.current_user.userName}
+  aws:
+    # Example AWS target — same bundle, only the host differs. Uncomment + set host to deploy on AWS.
+    workspace:
+      host: https://<your-aws-workspace>.cloud.databricks.com
+    run_as:
+      user_name: ${workspace.current_user.userName}

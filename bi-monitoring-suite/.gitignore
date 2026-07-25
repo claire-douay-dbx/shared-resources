@@ -1,0 +1,7 @@
+# Databricks bundle deploy state (host/metastore/state — never commit)
+.databricks/
+
+# macOS / Python junk
+.DS_Store
+__pycache__/
+*.pyc
